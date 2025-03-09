@@ -2,7 +2,6 @@ FROM apache/airflow:2.5.1
 
 # Remove this line if you don't have a requirements.txt
 COPY requirements.txt .
-COPY ../.env .
 
 # Switch to root to install system dependencies
 USER root
