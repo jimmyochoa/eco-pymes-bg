@@ -121,18 +121,15 @@ services:
       - neo4j
 
   # Flask Service for PDF Generation
-  flask-gen-pdfs:
+  gen-pdf-service:
     build:
       context: ./gen-pdf-service
       dockerfile: Dockerfile
     env_file:
       - .env
-    environment:
-    # Add any required environment variables for your Flask service here.
     ports:
       - "5000:5000"
     volumes:
-      - ./gen-pdf-service:/app
       - ./data:/app/data
 
   # Next.js Frontend Service
