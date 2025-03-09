@@ -44,10 +44,6 @@ const getPymeByEmail = async (email: string): Promise<Pyme | null> => {
     const value = email;
     const indexName = "email-index";
 
-    const data = await getByIndex(tableName, indexName, key, value);
-    if (data) {
-        return data;
-    }
-    return null;
+    return await getByIndex(tableName, indexName, key, value);
 
 };
