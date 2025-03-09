@@ -1,25 +1,24 @@
-name: Deploy to Amazon EKS
+name: Deploy bg-confianza-plus-frontend to Amazon EKS
 
 on:
   push:
     branches:
-      - main 
-  workflow_dispatch: 
+      - main  
+  workflow_dispatch:
 
 env:
-  AWS_REGION: us-west-2
-  ECR_REPOSITORY: hackaton
-  EKS_CLUSTER_NAME: extravagant-dubstep-hideout
+  AWS_REGION: us-west-2  
+  ECR_REPOSITORY: hackaton 
+  EKS_CLUSTER_NAME: extravagant-dubstep-hideout  
+  IMAGE_TAG: latest  
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
- 
     - name: Checkout code
       uses: actions/checkout@v2
-
 
     - name: Set up AWS CLI
       uses: aws-actions/configure-aws-credentials@v1
@@ -29,8 +28,13 @@ jobs:
         aws-region: ${{ env.AWS_REGION }}
         aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
 
-    - name: Build Docker image
+    - name: Build Docker image for bg-confianza-plus-frontend
       run: |
+        cd bg-confianza-plus-frontend  # Entrar en la carpeta del proyecto específico
+        echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" > .env
+        echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> .env
+        echo "AWS_SESSION_TOKEN=${{ secrets.AWS_SESSION_TOKEN }}" >> .env
+        echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> .env
         docker build -t $ECR_REPOSITORY .
         $(aws ecr get-login --no-include-email --region $AWS_REGION)
 
@@ -57,7 +61,7 @@ jobs:
         cluster-name: ${{ env.EKS_CLUSTER_NAME }}
         region: ${{ env.AWS_REGION }}
 
-    - name: Deploy to EKS
+    - name: Deploy bg-confianza-plus-frontend to EKS
       run: |
-        kubectl set image deployment/my-nextjs-app-deployment my-nextjs-app=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
-        kubectl rollout status deployment/my-nextjs-app-deployment
+        kubectl set image deployment/bg-confianza-plus-frontend-deployment bg-confianza-plus-frontend=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
+        kubectl rollout status deployment/bg-confianza-plus-frontend-deployment
