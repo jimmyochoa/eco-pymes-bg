@@ -22,7 +22,21 @@ The pipeline consists of the following steps:
 
 ## Folder Structure
 
-project/ ├── dags/ │ ├── dag_fetch_merge.py │ ├── dag_generate_graph.py │ ├── dag_compute_semantic.py │ ├── dag_aggregate_embeddings.py │ └── dag_submit_to_pinecone.py ├── fastapi_app/ │ ├── Dockerfile │ ├── main.py │ └── requirements.txt ├── data/ # Folder to store/access shared application data ├── docker-compose.yml ├── .env # Environment variables file └── README.md # This file
+project/ 
+├── dags/
+│├── dag_fetch_merge.py 
+│├── dag_generate_graph.py 
+│├── dag_compute_semantic.py 
+│├── dag_aggregate_embeddings.py 
+│└── dag_submit_to_pinecone.py 
+├── fastapi_app/ 
+│├── Dockerfile 
+│├── main.py 
+│└── requirements.txt 
+├── data/ # Folder to store/access shared application data 
+├── docker-compose.yml 
+├── .env # Environment variables file 
+└── README.md # This file
 
 ---
 
@@ -56,6 +70,11 @@ NEO4J_USER=your-key
 NEO4J_PASSWORD=your-key
 API_URL=https://api-hackathon-h0fxfrgwh3ekgge7.brazilsouth-01.azurewebsites.net
 API_KEY=your-key
+
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+AWS_SESSION_TOKEN=
+AWS_REGION=
 ```
 ## Components Overview
 - Airflow:
