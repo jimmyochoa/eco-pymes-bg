@@ -1,0 +1,7 @@
+networkx
+requests
+neo4j-driver
+pinecone-client
+sentence_transformers
+fuzzywuzzy
+kafka-python

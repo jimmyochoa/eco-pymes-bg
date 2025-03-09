@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+
+exec poetry run fastapi dev src/bgchallenge/main.py "$@"

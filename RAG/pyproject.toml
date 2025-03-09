@@ -1,0 +1,29 @@
+[tool.poetry]
+name = "bg-challenge"
+version = "0.1.0"
+description = ""
+authors = ["Sucre Cando <scandog1993@gmail.com>"]
+readme = "README.md"
+packages = [{ include = "bgchallenge", from = "src" }]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+python-dotenv = "^1.0"
+uvicorn = "^0.34"
+fastapi = { extras = ["standard"], version = "^0.115" }
+scikit-learn = "^1.6.1"
+pypdf2 = "^3.0.1"
+openai = "^1.65.4"
+neo4j = "^5.28.1"
+networkx = "^3.4.2"
+pinecone = "^6.0.1"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4"
+
+[tool.poetry.scripts]
+bgchallenge = 'bgchanllenge.api:main'
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

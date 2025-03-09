@@ -1,0 +1,160 @@
+services:
+  # Zookeeper is required by Kafka
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.0.1
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper
+
+  # Kafka Broker
+  kafka:
+    image: confluentinc/cp-kafka:7.0.1
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      # Advertised listeners: internal hostname "kafka" and external access via localhost (adjust as needed)
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_LOG4J_ROOT_LOGLEVEL: DEBUG
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+      - kafka_logs:/var/log/kafka
+
+  postgres:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=airflow
+      - POSTGRES_PASSWORD=airflow
+      - POSTGRES_DB=airflow
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # Airflow ser                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       vice for orchestration
+  airflow-webserver:
+    build:
+      context: ./DAG
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
+      - AIRFLOW__CORE__FERNET_KEY=${FERNET_KEY}
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__WEBSERVER__SECRET_KEY=${FERNET_KEY}
+      # Neo4j connection variables for DAG tasks
+      - NEO4J_URI=bolt://neo4j:7687
+      - NEO4J_USER=neo4j
+      - NEO4J_PASSWORD=test
+      # Pinecone configuration (replace with your values)
+      - PINECONE_API_KEY=${PINECONE_API_KEY}
+      - PINECONE_ENVIRONMENT=${PINECONE_ENVIRONMENT}
+      - PINECONE_INDEX_NAME=${PINECONE_INDEX_NAME}
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - airflow_logs:/opt/airflow/logs
+    ports:
+      - "8080:8080"
+    command: ["airflow", "webserver"]
+
+  airflow-scheduler:
+    build:
+      context: ./DAG
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
+      - AIRFLOW__CORE__FERNET_KEY=${FERNET_KEY}
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__WEBSERVER__SECRET_KEY=${FERNET_KEY}
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - airflow_logs:/opt/airflow/logs
+    command: ["airflow", "scheduler"]
+
+  # Neo4j persistent graph database
+  neo4j:
+    image: neo4j:4.4
+    environment:
+      - NEO4J_AUTH=neo4j/test
+    ports:
+      - "7474:7474"  # Browser UI
+      - "7687:7687"  # Bolt protocol
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+
+  # FastAPI Service for RAG using Pinecone
+  fastapi:
+    build:
+      context: ./RAG
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      - PINECONE_API_KEY=your-pinecone-api-key
+      - PINECONE_ENVIRONMENT=your-pinecone-env
+      - PINECONE_INDEX_NAME=graph-embeddings
+    ports:
+      - "8000:8000"
+
+    volumes:
+      - ./data:/app/data
+
+    depends_on:
+      - kafka
+      - postgres
+      - neo4j
+
+  # Flask Service for PDF Generation
+  flask-gen-pdfs:
+    build:
+      context: ./gen-pdf-service
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+    # Add any required environment variables for your Flask service here.
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./gen-pdf-service:/app
+      - ./data:/app/data
+
+  # Next.js Frontend Service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=development
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+
+
+volumes:
+  postgres_data:
+  neo4j_data:
+  neo4j_logs:
+  airflow_logs:
+  kafka_data:
+  zookeeper_data:
+  kafka_logs:
